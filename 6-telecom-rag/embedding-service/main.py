@@ -46,13 +46,24 @@ from fastapi import FastAPI
 from pydantic import BaseModel
 from sentence_transformers import SentenceTransformer
 
-MODEL_NAME = os.getenv("EMBED_MODEL", "sentence-transformers/all-MiniLM-L6-v2")
+MODEL_DIR = "/models"
+if os.path.exists(os.path.join(MODEL_DIR, "config.json")):
+    MODEL_TO_LOAD = MODEL_DIR
+else:
+    MODEL_TO_LOAD = os.getenv("EMBED_MODEL", "sentence-transformers/all-MiniLM-L6-v2")
+
 DEVICE = os.getenv("DEVICE", "cpu")  # "cpu" or "cuda"
 
 app = FastAPI(title="embedding-service")
 
 # Loaded ONCE at startup, then reused for every request.
-model = SentenceTransformer(MODEL_NAME, device=DEVICE)
+try:
+    print(f"Loading embedding model '{MODEL_TO_LOAD}' on {DEVICE}...")
+    model = SentenceTransformer(MODEL_TO_LOAD, device=DEVICE)
+    print("Embedding model loaded successfully.")
+except Exception as e:
+    print(f"CRITICAL: Failed to load embedding model: {e}")
+    raise
 
 
 class EmbedRequest(BaseModel):
@@ -61,7 +72,7 @@ class EmbedRequest(BaseModel):
 
 @app.get("/health")
 def health():
-    return {"status": "ok", "model": MODEL_NAME, "device": str(model.device)}
+    return {"status": "ok", "model": MODEL_TO_LOAD, "device": str(model.device)}
 
 
 @app.post("/embed")

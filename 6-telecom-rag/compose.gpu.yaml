@@ -5,6 +5,8 @@ services:
       dockerfile: Dockerfile.gpu
     image: telecom-embeddings:gpu
     mem_limit: 6g
+    volumes:
+      - ./models:/models:ro
     environment:
       DEVICE: cuda
     deploy:

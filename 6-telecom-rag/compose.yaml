@@ -6,6 +6,8 @@ services:
       context: ./embedding-service
     image: telecom-embeddings:cpu
     mem_limit: 3g
+    volumes:
+      - ./models:/models:ro
   
   chroma:
     image: chromadb/chroma:latest
