@@ -25,3 +25,4 @@ Thumbs.db
 
 # Claude Code local files
 .claude/
+6-telecom-rag/models/model.safetensors
