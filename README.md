@@ -187,10 +187,65 @@ The retriever merges three Chroma collections: `faq` (CSV), `tickets` (SQLite) a
 
 ## Useful Commands
 
+### 1. Compose Lifecycle & Operations
+
 ```bash
-docker compose ps               # Running services
-docker compose logs -f rag-app  # Follow logs for one service
-docker compose down             # Stop services, keep volumes
-docker compose down -v          # Stop services and delete volumes
-docker image ls                 # Compare image sizes across steps
+docker compose ps                               # List running services & health status
+docker compose ps -a                            # List all services including stopped/exited
+docker compose up -d                            # Start all services in the background (detached)
+docker compose restart <service>                # Restart a single service (e.g. embeddings)
+docker compose stop                             # Stop services without removing containers/networks
+docker compose down                             # Stop and remove containers and network (keeps volumes)
+docker compose down -v                          # Stop and delete containers, network, AND named volumes
+```
+
+### 2. Logs & Debugging
+
+```bash
+docker compose logs -f                          # Tail live logs for all running services
+docker compose logs -f rag-app                  # Tail live logs for a specific service
+docker compose logs --tail=100 embeddings       # Show last 100 log lines of a service
+
+# Interactive shell inside a running container
+docker compose exec -it rag-app bash            # Open bash in rag-app (or 'sh')
+docker compose exec -it embeddings sh           # Open sh in embeddings
+
+# Run a one-off command in a temporary container
+docker compose run --rm rag-app python -V       # Check python version and remove container after
+```
+
+### 3. Monitoring & Resource Usage
+
+```bash
+docker stats                                    # Live stream of CPU, memory, net & disk I/O
+docker compose top                              # Display running processes across compose services
+docker compose port rag-app 8501                # See which host port maps to container port 8501
+```
+
+### 4. Disk Usage & Cleanup (Free Up Space)
+
+```bash
+# Check how much disk space Docker is using
+docker system df
+
+# Clean up stopped containers and dangling images (safe)
+docker container prune -f                       # Remove all stopped containers
+docker image prune -f                           # Remove dangling (<none>) images
+docker builder prune -f                         # Clear BuildKit build cache
+
+# Deeper cleanup
+docker image prune -a -f                        # Remove all unused images not in active containers
+docker volume prune -f                          # Remove all unused local volumes
+
+# Full cleanup / Reset (removes all stopped containers, unused images, volumes, and cache)
+docker system prune -a --volumes -f
+```
+
+### 5. Inspecting Images & Volumes
+
+```bash
+docker image ls                                 # List all local images and their sizes
+docker volume ls                                # List all Docker volumes
+docker network ls                               # List all Docker networks
+docker inspect <container_or_image>             # Deep JSON inspection (IP, environment, mounts)
 ```
