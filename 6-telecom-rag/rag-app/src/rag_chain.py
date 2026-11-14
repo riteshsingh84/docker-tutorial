@@ -42,6 +42,10 @@ def build_chain():
         ("human", "{question}"),
     ])
 
+    import httpx
+    # Bypass corporate proxy SSL verification when calling Groq API
+    custom_http_client = httpx.Client(verify=False)
+
     llm = ChatGroq(
         model="openai/gpt-oss-120b",
         temperature=0,
@@ -49,6 +53,7 @@ def build_chain():
         reasoning_format="parsed",
         timeout=None,
         max_retries=2,
+        http_client=custom_http_client,
     )
 
     chain = (

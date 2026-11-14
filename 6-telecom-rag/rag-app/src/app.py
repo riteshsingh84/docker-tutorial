@@ -68,6 +68,10 @@ if question:
 
     with st.chat_message("assistant"):
         chain = get_chain()
-        response = st.write_stream(chain.stream(question))
+        try:
+            response = st.write_stream(chain.stream(question))
+        except Exception as e:
+            st.error(f"⚠️ Error: {e}")
+            response = f"Error: {e}"
 
     st.session_state.messages.append({"role": "assistant", "content": response})
