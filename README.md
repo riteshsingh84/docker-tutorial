@@ -67,6 +67,8 @@ Change the host port with `API_PORT=9000 docker compose up`.
 
 ### Step 6: Telecom RAG chatbot
 
+> 📖 **Deep Dive**: For a complete file catalog, component breakdown, dataflow diagrams, and sequential execution flow, see **[6-telecom-rag/ARCHITECTURE.md](6-telecom-rag/ARCHITECTURE.md)**.
+
 A production-style multi-container RAG application with:
 - **`rag-app`**: Streamlit frontend & LangChain RAG pipeline
 - **`embeddings`**: FastAPI microservice serving `sentence-transformers/all-MiniLM-L6-v2` vectors
