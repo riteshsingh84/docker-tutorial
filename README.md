@@ -67,29 +67,77 @@ Change the host port with `API_PORT=9000 docker compose up`.
 
 ### Step 6: Telecom RAG chatbot
 
+A production-style multi-container RAG application with:
+- **`rag-app`**: Streamlit frontend & LangChain RAG pipeline
+- **`embeddings`**: FastAPI microservice serving `sentence-transformers/all-MiniLM-L6-v2` vectors
+- **`chroma`**: ChromaDB vector store persisting data to a named Docker volume
+
+#### 1. Generate a Free Groq API Key
+
+Groq offers free, ultra-fast LLM inference with generous rate limits (no credit card required):
+1. Sign up or log in at **[console.groq.com](https://console.groq.com)**.
+2. Go to **API Keys** in the left sidebar (or visit **[console.groq.com/keys](https://console.groq.com/keys)**).
+3. Click **Create API Key**, give it a name (e.g. `telecom-rag`), and copy the key (starts with `gsk_...`).
+4. Configure your `.env` file:
+   ```bash
+   cd 6-telecom-rag
+   cp rag-app/.env.example rag-app/.env
+   ```
+   Open `rag-app/.env` and paste your key:
+   ```env
+   GROQ_API_KEY=gsk_your_actual_key_here
+   ```
+
+#### 2. Set Up the Embedding Model (`models/`)
+
+To guarantee fast, offline startup and avoid corporate proxy / SSL inspection issues inside Docker:
+
 ```bash
-cd 6-telecom-rag
-
-# Configure environment
-cp rag-app/.env.example rag-app/.env
-# Edit rag-app/.env and add your GROQ_API_KEY
-
-# Build and start all three services
-docker compose up --build
-
-# In a second terminal: load the data into ChromaDB (run once)
-docker compose run --rm rag-app python -m src.ingest.faq
-docker compose run --rm rag-app python -m src.ingest.tickets
-docker compose run --rm rag-app python -m src.ingest.pdf
+# Run the host helper script to download the model files to ./models
+py -3.14 download_model_host.py
+# or: python download_model_host.py
 ```
 
-Open [http://localhost:8501](http://localhost:8501) and start chatting.
+> [!TIP]
+> **Behind a strict corporate proxy/firewall?**
+> If your network blocks automated CLI downloads of the 90 MB binary weights file (`model.safetensors`):
+> 1. Download it directly in your browser: [sentence-transformers/all-MiniLM-L6-v2/resolve/main/model.safetensors](https://huggingface.co/sentence-transformers/all-MiniLM-L6-v2/resolve/main/model.safetensors)
+> 2. Move the file to `6-telecom-rag/models/model.safetensors`.
+> 
+> The local `models/` directory is mounted into the `embeddings` container, allowing it to load the model 100% offline.
 
-**With an NVIDIA GPU** (faster embeddings):
+#### 3. Start the Services
 
+```bash
+# Build and start all services (embeddings, chroma, rag-app)
+docker compose up --build
+```
+
+**With an NVIDIA GPU** (faster embeddings via CUDA):
 ```bash
 docker compose -f compose.yaml -f compose.gpu.yaml up --build
 ```
+
+#### 4. Load Knowledge Base into ChromaDB (Run Once)
+
+In a second terminal, ingest the three telecom data sources into ChromaDB:
+
+```bash
+cd 6-telecom-rag
+
+# 1. Ingest general telecom FAQs from CSV
+docker compose run --rm rag-app python -m src.ingest.faq
+
+# 2. Ingest past resolved support tickets from SQLite
+docker compose run --rm rag-app python -m src.ingest.tickets
+
+# 3. Chunk and ingest the telecom PDF guide
+docker compose run --rm rag-app python -m src.ingest.pdf
+```
+
+#### 5. Open the Chatbot
+
+Open **[http://localhost:8501](http://localhost:8501)** in your browser and start asking questions!
 
 ---
 
