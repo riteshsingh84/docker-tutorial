@@ -146,6 +146,3 @@ docker compose down             # Stop services, keep volumes
 docker compose down -v          # Stop services and delete volumes
 docker image ls                 # Compare image sizes across steps
 ```
-
----
-Copyright©️ Codebasics Inc. All rights reserved.
