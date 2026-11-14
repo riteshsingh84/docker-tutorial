@@ -5,15 +5,17 @@ COPY --from=ghcr.io/astral-sh/uv:0.6.14 /uv /usr/local/bin/uv
 WORKDIR /app
 
 ENV HF_HOME=/models \
+    HF_HUB_DISABLE_SSL_VERIFICATION=1 \
+    HF_HUB_DISABLE_XET=1 \
     UV_LINK_MODE=copy \
     UV_SYSTEM_CERTS=true \
-    UV_INSECURE_HOST="pypi.org files.pythonhosted.org pypi.python.org download.pytorch.org" \
+    UV_INSECURE_HOST="pypi.org files.pythonhosted.org pypi.python.org download.pytorch.org download-r2.pytorch.org" \
     PATH="/app/.venv/bin:$PATH"
 
+COPY download_model.py ./
+
 RUN uv pip install --system huggingface_hub && \
-    python -c "from huggingface_hub import snapshot_download; \
-    snapshot_download('sentence-transformers/all-MiniLM-L6-v2', \
-    ignore_patterns=['*.onnx', '*.h5', '*.ot', '*.msgpack', 'onnx/*', 'openvino/*'])"
+    python download_model.py
 
 COPY pyproject.toml uv.lock ./
 
